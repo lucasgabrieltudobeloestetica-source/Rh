@@ -1,4 +1,4 @@
-const STORAGE_KEY = "rh-flow-demo-v1";
+const STORAGE_KEY = "tudo-belo-rh-demo-v2";
 
 const palette = ["#405c8a", "#a86d5c", "#5b9a85", "#8b6eb9", "#ca8756", "#547caf", "#a45d83", "#698b57"];
 
@@ -48,6 +48,34 @@ const seed = {
   ]
 };
 
+// Snapshot agregado das fontes recebidas. Não inclua pessoas, documentos brutos,
+// identificadores ou datas pessoais neste front-end público.
+const orgSnapshot = {
+  referenceDate: "13 de outubro de 2026",
+  sources: [
+    { title: "Organograma corporativo", summary: "8 núcleos estruturais mapeados", detail: "Referência para áreas, camadas de liderança e fluxo de reporte.", status: "Estrutura pronta", tone: "ready" },
+    { title: "Listagem operacional", summary: "46 registros detalhados no relatório", detail: "Traz cargo, departamento e admissão; permanece bloqueada para importação privada.", status: "Ambiente privado necessário", tone: "blocked" },
+    { title: "Relatório de aniversariantes", summary: "83 ocorrências para conciliação", detail: "Não possui identificador, cargo ou área suficientes para cruzamento automático.", status: "Revisão necessária", tone: "review" }
+  ],
+  areas: [
+    { name: "Gente & Gestão", focus: "Treinamento técnico · Departamento pessoal · Serviços gerais · Aprendizagem", icon: "♙" },
+    { name: "Logística", focus: "Estoque · Transporte · Operação e atendimento", icon: "↝" },
+    { name: "Financeiro & Crédito", focus: "Financeiro · Crédito e cobrança · Controladoria", icon: "◈" },
+    { name: "Comercial — Eletroterapia", focus: "Coordenação · Consultoria comercial · Assistência", icon: "◇" },
+    { name: "Comercial — Injetáveis", focus: "Coordenação · Consultoria comercial · Assistência", icon: "◇" },
+    { name: "SDR", focus: "Supervisão · Qualificação de oportunidades", icon: "◌" },
+    { name: "Marketing & TI", focus: "Martech · Marketing · Tecnologia", icon: "✦" },
+    { name: "Taguatinga & Locação", focus: "Vendas · Locação · Entregas", icon: "⌁" }
+  ],
+  distribution: [
+    { label: "Logística", value: 12, tone: "#4f7fd4" },
+    { label: "Eletroterapia", value: 9, tone: "#7f66c7" },
+    { label: "Injetáveis", value: 6, tone: "#41a37b" },
+    { label: "Financeiro", value: 5, tone: "#d69846" },
+    { label: "Outras áreas", value: 14, tone: "#9ba8b9" }
+  ]
+};
+
 let state = loadState();
 let currentView = "dashboard";
 let employeeFilter = "";
@@ -59,11 +87,12 @@ const modalRoot = document.querySelector("#modal-root");
 const toastRoot = document.querySelector("#toast-root");
 
 const viewInfo = {
-  dashboard: { title: "Visão geral", eyebrow: "BRISA FOODS / RH" },
+  dashboard: { title: "Visão geral", eyebrow: "TUDO BELO / GENTE & GESTÃO" },
   employees: { title: "Colaboradores", eyebrow: "GESTÃO DE PESSOAS" },
   timeoff: { title: "Férias e ausências", eyebrow: "GESTÃO DE PESSOAS" },
   recruitment: { title: "Recrutamento", eyebrow: "GESTÃO DE PESSOAS" },
   performance: { title: "Desempenho", eyebrow: "GESTÃO DE PESSOAS" },
+  organization: { title: "Estrutura organizacional", eyebrow: "ORGANIZAÇÃO" },
   documents: { title: "Documentos", eyebrow: "ORGANIZAÇÃO" },
   communications: { title: "Comunicações", eyebrow: "ORGANIZAÇÃO" },
   settings: { title: "Configurações", eyebrow: "ORGANIZAÇÃO" }
@@ -129,7 +158,7 @@ function render() {
   title.textContent = meta.title;
   document.querySelector("#page-eyebrow").textContent = meta.eyebrow;
   document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === currentView));
-  const renderers = { dashboard: renderDashboard, employees: renderEmployees, timeoff: renderTimeOff, recruitment: renderRecruitment, performance: renderPerformance, documents: renderDocuments, communications: renderCommunications, settings: renderSettings };
+  const renderers = { dashboard: renderDashboard, employees: renderEmployees, timeoff: renderTimeOff, recruitment: renderRecruitment, performance: renderPerformance, organization: renderOrganization, documents: renderDocuments, communications: renderCommunications, settings: renderSettings };
   content.innerHTML = renderers[currentView]();
   updateLeaveCount();
   bindViewControls();
@@ -140,35 +169,26 @@ function pageIntro(heading, copy, action, date = false) {
 }
 
 function renderDashboard() {
-  const active = state.employees.filter((employee) => employee.status === "Ativo").length;
-  const pending = state.leaveRequests.filter((request) => request.status === "Pendente").length;
-  const newEmployees = state.employees.filter((employee) => new Date(employee.admission) > new Date("2025-12-31")).length;
-  const birthdayPeople = state.employees.slice(0, 4);
-  const pendingRequests = state.leaveRequests.filter((request) => request.status === "Pendente").slice(0, 3);
+  const totalRecords = orgSnapshot.distribution.reduce((total, item) => total + item.value, 0);
   return `
-    ${pageIntro("Olá, Lucas!", "Aqui está o que está acontecendo com as pessoas da Brisa Foods.", "", true)}
+    ${pageIntro("Estrutura organizada", "Resumo agregado das fontes recebidas. O cadastro nominativo permanece fora da versão pública.", '<button class="primary-button" data-view-link="organization"><span>⌘</span>Ver estrutura</button>', true)}
     <div class="metric-grid">
-      <article class="metric-card"><header><span>COLABORADORES ATIVOS</span><span class="metric-icon blue">♙</span></header><strong>${active}</strong><footer><span class="up">↗ 6,1%</span> em relação ao último mês</footer></article>
-      <article class="metric-card"><header><span>ADMISSÕES NO MÊS</span><span class="metric-icon green">＋</span></header><strong>${newEmployees}</strong><footer><span class="up">↗ 2 novos</span> desde setembro</footer></article>
-      <article class="metric-card"><header><span>FÉRIAS PENDENTES</span><span class="metric-icon amber">◷</span></header><strong>${pending}</strong><footer><span class="warn">${pending} solicitações</span> aguardam aprovação</footer></article>
-      <article class="metric-card"><header><span>TURNOVER ANUAL</span><span class="metric-icon purple">↗</span></header><strong>7,8%</strong><footer><span class="up">↓ 1,4 p.p.</span> comparado ao ano anterior</footer></article>
+      <article class="metric-card"><header><span>FONTES CATALOGADAS</span><span class="metric-icon blue">▤</span></header><strong>3</strong><footer>Organograma, lista operacional e aniversariantes</footer></article>
+      <article class="metric-card"><header><span>NÚCLEOS MAPEADOS</span><span class="metric-icon green">⌘</span></header><strong>8</strong><footer>Referência estrutural do organograma</footer></article>
+      <article class="metric-card"><header><span>REGISTROS DETALHADOS</span><span class="metric-icon amber">♙</span></header><strong>${totalRecords}</strong><footer>Relatório operacional de ${orgSnapshot.referenceDate}</footer></article>
+      <article class="metric-card"><header><span>OCORRÊNCIAS A CONCILIAR</span><span class="metric-icon purple">◌</span></header><strong>83</strong><footer>Lista sem identificador comum para vínculo automático</footer></article>
     </div>
-    <div class="dashboard-grid">
-      <article class="card"><div class="card-title"><div><h3>Evolução do quadro</h3><p>Admissões e desligamentos nos últimos 6 meses</p></div><div><select class="select-lite"><option>Últimos 6 meses</option></select></div></div>
-        <div class="chart-wrap"><div class="chart-scales"><div class="y-axis"><span>20</span><span>15</span><span>10</span><span>5</span><span>0</span></div><div class="bar-zone">
-        ${[[62,26,"12","5"],[78,39,"15","7"],[57,25,"11","4"],[91,29,"18","5"],[68,33,"13","6"],[83,24,"16","4"]].map(([a,b,av,bv]) => `<div class="bar-group"><i class="bar" style="height:${a}%" data-value="${av} admissões"></i><i class="bar" style="height:${b}%" data-value="${bv} desligamentos"></i></div>`).join("")}
-        </div></div><div class="chart-months"><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span></div></div><div class="legend"><span>Admissões</span><span>Desligamentos</span></div>
+    <div class="dashboard-grid source-dashboard-grid">
+      <article class="card"><div class="card-title"><div><h3>Registros por agrupamento</h3><p>Distribuição agregada da lista operacional</p></div><span class="date-chip">${orgSnapshot.referenceDate}</span></div>
+        <div class="distribution-list">${orgSnapshot.distribution.map((item) => `<div class="distribution-row"><span>${escapeHtml(item.label)}</span><div class="distribution-track"><i style="width:${Math.round(item.value / totalRecords * 100)}%;background:${item.tone}"></i></div><b>${item.value}</b></div>`).join("")}</div>
+        <p class="privacy-footnote">A lista não informa status de vínculo. Os números representam registros do relatório, não o quadro ativo.</p>
       </article>
-      <article class="card"><div class="card-title"><div><h3>Aniversariantes</h3><p>Próximos aniversários</p></div><button class="link-button" data-view-link="employees">Ver todos</button></div><div class="anniversary-list">
-        ${birthdayPeople.map((employee) => `<div class="person-line">${avatar(employee,"small")}<div class="person-copy"><b>${escapeHtml(employee.name)}</b><small>${escapeHtml(employee.department)}</small></div><span class="date-chip">${employee.birthday}</span></div>`).join("")}
-      </div></article>
+      <article class="card"><div class="card-title"><div><h3>Próxima decisão</h3><p>O que falta para importar registros reais</p></div><span class="status pending">Atenção</span></div><div class="decision-stack"><div><span>1</span><p><b>Restringir acesso</b><small>Manter dados de pessoas fora desta versão pública.</small></p></div><div><span>2</span><p><b>Conectar ambiente privado</b><small>Autenticação, banco e regras de acesso por perfil.</small></p></div><div><span>3</span><p><b>Validar a conciliação</b><small>Não relacionar as fontes por nome sem um identificador interno.</small></p></div></div><button class="secondary-button full-width" data-action="open-privacy-plan">Ver plano seguro de importação</button></article>
     </div>
     <div class="lower-grid">
-      <article class="card"><div class="card-title"><div><h3>Atividade recente</h3><p>Movimentações do time</p></div><button class="link-button" data-view-link="employees">Ver histórico</button></div>
-      ${state.activity.map((event) => `<div class="activity-row"><span class="activity-icon ${event.tone}">${event.icon}</span><div class="activity-copy"><b>${escapeHtml(event.title)}</b><p>${escapeHtml(event.note)}</p><time>${escapeHtml(event.time)}</time></div></div>`).join("")}</article>
-      <article class="card"><div class="card-title"><div><h3>Aprovações pendentes</h3><p>Ações que precisam da sua atenção</p></div><button class="link-button" data-view-link="timeoff">Ver todas</button></div><div class="approvals">
-      ${pendingRequests.length ? pendingRequests.map((request) => { const employee = personById(request.employeeId); return `<div class="approval-item">${avatar(employee,"small")}<div class="person-copy"><b>${escapeHtml(employee.name)}</b><small>${request.type} • ${formatDate(request.start)} a ${formatDate(request.end)}</small></div><div class="mini-actions"><button class="round-action yes" data-action="approve-leave" data-id="${request.id}" aria-label="Aprovar">✓</button><button class="round-action no" data-action="reject-leave" data-id="${request.id}" aria-label="Recusar">×</button></div></div>`; }).join("") : '<p class="empty-state">Nenhuma aprovação pendente.</p>'}
-      </div></article>
+      <article class="card"><div class="card-title"><div><h3>Inventário das fontes</h3><p>O que cada arquivo pode alimentar com segurança</p></div><button class="link-button" data-view-link="organization">Ver detalhes</button></div>
+      ${orgSnapshot.sources.map((source) => `<div class="source-line"><span class="source-dot ${source.tone}"></span><div><b>${escapeHtml(source.title)}</b><p>${escapeHtml(source.summary)}</p></div><span class="source-status ${source.tone}">${escapeHtml(source.status)}</span></div>`).join("")}</article>
+      <article class="card privacy-card-large"><div class="card-title"><div><h3>Privacidade por padrão</h3><p>Proteção necessária antes do cadastro real</p></div><span>⌾</span></div><p>O site público mostra somente a estrutura agregada. Nomes, contatos, datas e identificadores ficam fora do navegador, do repositório e da implantação até existir um ambiente autenticado.</p><ul><li>Supabase Auth para identidade e perfis</li><li>RLS para separar RH, gestor e colaborador</li><li>Storage privado e trilha de auditoria</li></ul><button class="link-button" data-action="open-privacy-plan">Entender a implantação segura</button></article>
     </div>`;
 }
 
@@ -178,7 +198,8 @@ function renderEmployees() {
     const matchesText = `${employee.name} ${employee.role} ${employee.email}`.toLowerCase().includes(employeeFilter.toLowerCase());
     return matchesText && (selectedDepartment === "Todos" || employee.department === selectedDepartment);
   });
-  return `${pageIntro("Colaboradores", "Gerencie as informações e a jornada das pessoas da sua empresa.", '<button class="primary-button" data-action="open-employee-modal"><span>＋</span>Adicionar colaborador</button>')}
+  return `${pageIntro("Colaboradores", "O diretório real será liberado no ambiente autenticado; abaixo há somente registros fictícios para demonstrar a interface.", '<button class="primary-button" data-action="open-privacy-plan"><span>⌾</span>Preparar importação</button>')}
+    <div class="demo-banner"><span>⌾</span><p><b>Dados de demonstração</b> — não cadastre informações pessoais nesta versão pública. A importação oficial será feita em área protegida.</p></div>
     <div class="toolbar"><label class="search-field"><span>⌕</span><input id="employee-search" type="search" value="${escapeHtml(employeeFilter)}" placeholder="Buscar por nome, cargo ou e-mail" /></label><select class="filter-button" id="department-filter">${departments.map((department) => `<option ${department === selectedDepartment ? "selected" : ""}>${escapeHtml(department)}</option>`).join("")}</select><button class="filter-button" data-action="export-employees">⇩ Exportar</button></div>
     <div class="card table-card"><table class="data-table"><thead><tr><th>Colaborador</th><th>Cargo e setor</th><th>Admissão</th><th>Gestor</th><th>Status</th><th></th></tr></thead><tbody>
     ${filtered.length ? filtered.map((employee) => `<tr><td><div class="employee-cell">${avatar(employee)}<div class="person-copy"><b>${escapeHtml(employee.name)}</b><small>${escapeHtml(employee.email)}</small></div></div></td><td><b>${escapeHtml(employee.role)}</b><br><small>${escapeHtml(employee.department)}</small></td><td>${formatDate(employee.admission)}</td><td>${escapeHtml(employee.manager)}</td><td>${statusPill(employee.status)}</td><td><button class="row-menu" data-action="employee-detail" data-id="${employee.id}" aria-label="Ver detalhes de ${escapeHtml(employee.name)}">⋯</button></td></tr>`).join("") : '<tr><td colspan="6"><div class="empty-state"><b>Nenhum colaborador encontrado</b>Ajuste a busca ou os filtros para continuar.</div></td></tr>'}
@@ -205,6 +226,22 @@ function renderRecruitment() {
 function renderPerformance() {
   return `${pageIntro("Desempenho", "Promova conversas contínuas e o desenvolvimento do time.", '<button class="primary-button" data-action="start-cycle"><span>＋</span>Novo ciclo</button>')}
     <div class="performance-grid"><div><article class="card cycle-hero"><div class="card-title"><div><h3>Ciclo 2º semestre de 2026</h3><p>Autoavaliação, avaliação de gestores e calibração</p></div><span class="status active">Em andamento</span></div><div class="cycle-progress"><div class="progress-track"><div class="progress-fill" style="width:68%"></div></div></div><footer><span><b>68%</b> concluído • 35 de 52 pessoas</span><span>Encerramento em 30 Out</span></footer></article><article class="card pdi-list"><div class="card-title"><div><h3>Planos de desenvolvimento</h3><p>Itens que pedem acompanhamento</p></div><button class="link-button">Ver PDIs</button></div><div class="pdi-line"><span class="pdi-check">✓</span><div class="pdi-copy"><b>Marina Costa • Liderança inclusiva</b><small>Curso concluído, aguardando conversa com o gestor.</small></div><span class="due-date">Hoje</span></div><div class="pdi-line"><span class="pdi-check">↗</span><div class="pdi-copy"><b>Rafael Mendes • Visão de negócio</b><small>Apresentar descoberta de produto no Brisa Talks.</small></div><span class="due-date">18 Out</span></div><div class="pdi-line"><span class="pdi-check">○</span><div class="pdi-copy"><b>Bianca Ramos • Negociação consultiva</b><small>Mentoria com Felipe Nunes.</small></div><span class="due-date">24 Out</span></div></article></div><article class="card"><div class="card-title"><div><h3>Competências avaliadas</h3><p>Média do ciclo atual</p></div></div><div class="rating-list"><div class="rating-row"><span>Colaboração</span><div class="rating-bar"><i style="width:89%"></i></div><b>4,5</b></div><div class="rating-row"><span>Entrega</span><div class="rating-bar"><i style="width:83%"></i></div><b>4,2</b></div><div class="rating-row"><span>Comunicação</span><div class="rating-bar"><i style="width:78%"></i></div><b>3,9</b></div><div class="rating-row"><span>Inovação</span><div class="rating-bar"><i style="width:72%"></i></div><b>3,6</b></div></div><div class="card-title" style="margin-top:26px"><div><h3>Feedbacks recentes</h3><p>Últimos 7 dias</p></div></div><div class="person-line"><span class="avatar small" style="background:#547caf">RM</span><div class="person-copy"><b>Rafael recebeu um feedback</b><small>De Camila Rocha • há 2 dias</small></div></div><div class="person-line"><span class="avatar small" style="background:#a86d5c">MC</span><div class="person-copy"><b>Marina enviou um reconhecimento</b><small>Para Bianca Ramos • há 4 dias</small></div></div></article></div>`;
+}
+
+function renderOrganization() {
+  return `${pageIntro("Estrutura organizacional", "Mapa agregado criado a partir das fontes recebidas. Relações com nomes ficam reservadas ao ambiente privado.", '<button class="primary-button" data-action="open-privacy-plan"><span>⌾</span>Plano de importação</button>')}
+    <div class="security-banner"><span class="metric-icon blue">⌾</span><div><b>Visão pública e agregada</b><p>Esta página organiza áreas, frentes e camadas de trabalho sem publicar colaboradores, documentos brutos ou identificadores.</p></div><span class="status approved">Protegido</span></div>
+    <div class="metric-grid compact-metrics">
+      <article class="metric-card"><header><span>NÚCLEOS ESTRUTURAIS</span><span class="metric-icon blue">⌘</span></header><strong>8</strong><footer>Referência do organograma</footer></article>
+      <article class="metric-card"><header><span>DEPARTAMENTOS NO RELATÓRIO</span><span class="metric-icon green">▦</span></header><strong>10</strong><footer>Classificação operacional, sujeita à revisão</footer></article>
+      <article class="metric-card"><header><span>REGISTROS DETALHADOS</span><span class="metric-icon amber">▤</span></header><strong>46</strong><footer>Relatório de ${orgSnapshot.referenceDate}</footer></article>
+      <article class="metric-card"><header><span>CONCILIAÇÃO</span><span class="metric-icon purple">◌</span></header><strong>Pendente</strong><footer>Não há ID comum entre as fontes</footer></article>
+    </div>
+    <div class="organization-layout">
+      <article class="card org-map-card"><div class="card-title"><div><h3>Mapa por área</h3><p>Escopo funcional extraído do organograma — sem relações nominais</p></div><span class="date-chip">Atualizado em ${orgSnapshot.referenceDate}</span></div><div class="org-area-grid">${orgSnapshot.areas.map((area) => `<section class="org-area"><span>${area.icon}</span><div><h4>${escapeHtml(area.name)}</h4><p>${escapeHtml(area.focus)}</p></div></section>`).join("")}</div></article>
+      <aside class="org-side-stack"><article class="card"><div class="card-title"><div><h3>Camadas de trabalho</h3><p>Modelo observado nas áreas mapeadas</p></div></div><ol class="layer-list"><li><span>1</span><div><b>Direção e coordenação</b><small>Orientação de negócio e definição de prioridades.</small></div></li><li><span>2</span><div><b>Gestão e supervisão</b><small>Desdobramento operacional e acompanhamento do time.</small></div></li><li><span>3</span><div><b>Especialistas e operação</b><small>Análise, atendimento, vendas, suporte e execução.</small></div></li></ol></article><article class="card caution-card"><div class="card-title"><div><h3>Regra de conciliação</h3><p>Evita criar vínculos indevidos</p></div><span>!</span></div><p>Não associe registros por aproximação de nome. O relatório de aniversariantes não traz cargo, área ou identificador para um cruzamento confiável.</p></article></aside>
+    </div>
+    <article class="card import-inventory"><div class="card-title"><div><h3>Inventário de importação</h3><p>Estado de cada fonte antes do cadastro definitivo</p></div></div><div class="source-inventory">${orgSnapshot.sources.map((source) => `<section class="source-inventory-item"><span class="source-dot ${source.tone}"></span><div><h4>${escapeHtml(source.title)}</h4><b>${escapeHtml(source.summary)}</b><p>${escapeHtml(source.detail)}</p></div><span class="source-status ${source.tone}">${escapeHtml(source.status)}</span></section>`).join("")}</div></article>`;
 }
 
 function renderDocuments() {
@@ -268,6 +305,10 @@ function employeeDetail(employee) {
   modal(`<div class="modal-header"><div><h2>Perfil do colaborador</h2><p>Informações resumidas e status atual.</p></div><button class="modal-close" data-action="close-modal" aria-label="Fechar">×</button></div><div class="detail-card"><div class="detail-identity">${avatar(employee)}<div><h3>${escapeHtml(employee.name)}</h3><p>${escapeHtml(employee.role)} • ${escapeHtml(employee.department)}</p></div>${statusPill(employee.status)}</div><div class="detail-grid"><div><small>E-mail</small><b>${escapeHtml(employee.email)}</b></div><div><small>Admissão</small><b>${formatDate(employee.admission)}</b></div><div><small>Gestor direto</small><b>${escapeHtml(employee.manager)}</b></div><div><small>Saldo de férias</small><b>${escapeHtml(employee.vacation || "30 dias")}</b></div></div><div class="modal-footer"><button class="secondary-button" data-action="close-modal">Fechar</button><button class="primary-button" data-action="open-leave-modal">Registrar ausência</button></div></div>`);
 }
 
+function privacyPlanModal() {
+  modal(`<div class="modal-header"><div><h2>Plano seguro de importação</h2><p>O cadastro de pessoas só deve começar em ambiente autenticado e privado.</p></div><button class="modal-close" data-action="close-modal" aria-label="Fechar">×</button></div><div class="detail-card"><div class="implementation-plan"><div><span>1</span><p><b>Restringir o acesso</b><small>Exigir login antes de exibir diretório, organograma nominativo, documentos ou solicitações.</small></p></div><div><span>2</span><p><b>Conectar Supabase</b><small>Usar Auth, Postgres com RLS, Storage privado e registros de auditoria.</small></p></div><div><span>3</span><p><b>Importar em área de staging</b><small>Manter as fontes separadas até cada registro receber um identificador interno e passar por validação.</small></p></div><div><span>4</span><p><b>Publicar por perfil</b><small>RH, gestores e colaboradores visualizam somente o que sua função permite.</small></p></div></div><div class="modal-note"><b>Importante:</b> não suba CPF, PIS, horários, admissão, aniversários ou arquivos de origem para o repositório público ou para este front-end.</div><div class="modal-footer"><button class="primary-button" data-action="close-modal">Entendi</button></div></div>`);
+}
+
 function toast(message) {
   const toastElement = document.createElement("div");
   toastElement.className = "toast";
@@ -285,8 +326,7 @@ document.addEventListener("click", (event) => {
   if (action === "toggle-sidebar") document.querySelector("#sidebar").classList.toggle("open");
   if (action === "toggle-notifications") document.querySelector("#notification-popover").classList.toggle("hidden");
   if (action === "mark-read") { document.querySelector(".notification-button b")?.remove(); toast("Notificações marcadas como lidas."); }
-  if (action === "quick-add") employeeModal();
-  if (action === "open-employee-modal") employeeModal();
+  if (action === "quick-add" || action === "open-employee-modal" || action === "open-privacy-plan") privacyPlanModal();
   if (action === "open-leave-modal") leaveModal();
   if (action === "open-job-modal") jobModal();
   if (action === "open-candidate-modal") candidateModal(target.dataset.stage);
