@@ -1,49 +1,41 @@
 # Tudo Belo Pessoas
 
-MVP navegável de Gestão de Pessoas para a Tudo Belo Estética.
+Diretório estático de colaboradores da Tudo Belo Estética.
 
-## Incluído nesta primeira versão
+## Conteúdo atual
 
-- Dashboard de RH com indicadores, atividades e aprovações
-- Cadastro e consulta de colaboradores
-- Fluxo de férias e ausências com aprovação/reprovação
-- Pipeline de recrutamento em Kanban
-- Visão de desempenho e PDIs
-- Biblioteca de documentos e comunicados
-- Preferências de privacidade/LGPD demonstrativas
-- Visão agregada da estrutura organizacional e do inventário de fontes
-- Layout responsivo para desktop e celular
-- Dados gravados no `localStorage` do navegador
+- Diretório de consulta com 46 registros da Listagem Simples de 13 de outubro de 2026
+- Campos exibidos: nome, cargo e departamento
+- Busca por nome, cargo ou departamento
+- Filtro por departamento
+- Visão agregada do organograma, com oito núcleos mapeados
+- Layout responsivo para computador e celular
 
-## Organização das fontes recebidas
+Os demais módulos de RH aparecem como **em implantação** e não apresentam cadastros, atividades, solicitações ou métricas fictícias.
 
-A tela **Estrutura organizacional** consolida somente informações agregadas:
+## Limites de privacidade
 
-- 8 núcleos mapeados no organograma
-- 46 registros no relatório operacional de 13 de outubro de 2026
-- 83 ocorrências no relatório de aniversariantes que ainda precisam de conciliação
+Esta implantação é pública. Por isso, o diretório contém somente os dados profissionais mínimos explicitamente solicitados:
 
-Ela não contém nomes, e-mails, CPF, PIS, datas de admissão/nascimento, horários, arquivos de origem nem relações nominais de reporte. Os arquivos recebidos não são incluídos neste repositório nem na implantação pública.
+- nome;
+- cargo ou função;
+- departamento.
+
+Não contém CPF, PIS, número de folha, identificador interno, e-mail, telefone, horário, admissão, aniversário, salário, status, gestor, filial, documentos brutos ou relações nominais de reporte.
+
+Os arquivos recebidos como fonte não são incluídos no repositório nem na implantação.
+
+## Próxima etapa recomendada
+
+Para operar RH (cadastro, férias, documentos, desempenho ou comunicações), migre o diretório para uma área privada com:
+
+- autenticação e perfis de acesso;
+- banco de dados com regras de acesso por função;
+- armazenamento privado para documentos;
+- trilhas de auditoria;
+- revisão humana antes de importar ou reconciliar novas fontes.
 
 ## Como executar
 
-Como não há dependências, basta abrir `index.html` no navegador. Para melhor experiência local, sirva a pasta com qualquer servidor HTTP estático.
-
-Exemplo com Node.js:
-
-```powershell
-npx serve .
-```
-
-## Próxima etapa de produto
-
-Esta é uma demonstração front-end. Antes de importar dados reais, restrinja o acesso e conecte:
-
-- Supabase Auth para login e perfis;
-- Postgres com Row Level Security (RLS) para RH, gestores e colaboradores;
-- Storage privado para documentos;
-- área de staging, identificador interno e revisão humana para conciliar as fontes;
-- trilhas de auditoria e integrações com ponto, folha, assinatura digital e eSocial.
-
-> Não use dados pessoais reais na versão demonstrativa.
+Não há dependências. Abra index.html no navegador ou sirva esta pasta com um servidor HTTP estático, por exemplo: npx serve .
 
